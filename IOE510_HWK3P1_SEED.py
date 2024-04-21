@@ -3,7 +3,13 @@ import gurobipy as gp
 
 Blood_type={'A','B','O','AB'}
 
-Node={'1','2','3'}
+ZipCodes = {92014, 92037, 92064, 92065, 92101, 92102,
+              92103, 92104, 92105, 92106, 92107, 92108, 92109, 
+              92110, 92111, 92113, 92114, 92115, 92116, 92117, 
+              92119, 92120, 92121, 92122, 92123, 92124, 92126,
+              92127, 92128, 92129, 92130, 92131, 92139, 92154, 92173}
+            
+Hours = range(1, 25)
 
 Pair, Cost=multidict({
         ('1','2'):1,
@@ -33,7 +39,7 @@ same_match = {
 Demand={}
 Supply={}
 
-for n in Node:
+for n in Zip:
     for k in Blood_type:
         Demand[(n,k)]=0
         Supply[(n,k)]=0
@@ -53,15 +59,22 @@ Supply[('3','A')]=5
 
 m = gp.Model("Blood")
 
+
+time_factor = [1, 0.9667, 0.9334, 0.9, 0.8667, 0.8334,
+                0.8, 0.8334, 0.8667, 0.9, 0.9334, 0.9667, 
+                1, 1.0334, 1.0667, 1.1, 1.1334, 1.1667, 1.2,
+                1.1667, 1.1334, 1.1, 1.0667, 1.0334, 1]
+
 ##INSERT MODEL HERE
-x = {}
-for i in Node:
-    for k in Node:
+z = {}
+for i in ZipCodes:
+    for k in ZipCodes[i]:
+        for 
 
         for j in Blood_type:
-            x[i, k, j] = m.addVar(name="x[{},{}, {}]".format(i, k, j))
+            z[i, j, t] = m.addVar(name="x[{},{}, {}]".format(i, k, j))
 
-
+# i: all zipcodes, j : all generators in that zipcode, t: time period
 	
 # Add Objective Function
 m.setObjective(gp.quicksum((Cost[i, k] * x[i, k,j ] for j in Blood_type for (i,k) in Pair)), GRB.MINIMIZE)
