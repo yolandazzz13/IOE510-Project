@@ -1,5 +1,6 @@
 from gurobipy import *
 import gurobipy as gp
+import model_data
 
 Blood_type={'A','B','O','AB'}
 
@@ -10,6 +11,8 @@ ZipCodes = {92014, 92037, 92064, 92065, 92101, 92102,
               92127, 92128, 92129, 92130, 92131, 92139, 92154, 92173}
             
 Hours = range(1, 25)
+
+alpha = 1/2
 
 Pair, Cost=multidict({
         ('1','2'):1,
@@ -65,19 +68,22 @@ time_factor = [1, 0.9667, 0.9334, 0.9, 0.8667, 0.8334,
                 1, 1.0334, 1.0667, 1.1, 1.1334, 1.1667, 1.2,
                 1.1667, 1.1334, 1.1, 1.0667, 1.0334, 1]
 
-##INSERT MODEL HERE
+##decision variable
 z = {}
 for i in ZipCodes:
-    for k in ZipCodes[i]:
-        for 
-
-        for j in Blood_type:
-            z[i, j, t] = m.addVar(name="x[{},{}, {}]".format(i, k, j))
+    for j in ZipCodes[i]:
+        for t in Hours:
+            z[i, j, t] = m.addVar(name="z[{},{}, {}]".format(i, j, t))
 
 # i: all zipcodes, j : all generators in that zipcode, t: time period
+
+#fraction of open generators in a subregion at any time
+openG = (gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i])
 	
 # Add Objective Function
-m.setObjective(gp.quicksum((Cost[i, k] * x[i, k,j ] for j in Blood_type for (i,k) in Pair)), GRB.MINIMIZE)
+m.setObjective(gp.quicksum((alpha * model_data.wildfire_probabilities[i] * (gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i]) + 
+                            (1 - alpha) * model_data.infrastructure[i]['TotalkWh'] * model_data.importance_metric[i] * time_factor[t] * (1 - gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i])
+                            for i in ZipCodes for t in Hours)), GRB.MINIMIZE)
 	
 # Add Constraints
 for i in Node:
