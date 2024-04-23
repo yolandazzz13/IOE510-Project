@@ -9,6 +9,45 @@ ZipCodes = {92014, 92037, 92064, 92065, 92101, 92102,
               92110, 92111, 92113, 92114, 92115, 92116, 92117, 
               92119, 92120, 92121, 92122, 92123, 92124, 92126,
               92127, 92128, 92129, 92130, 92131, 92139, 92154, 92173}
+
+Generators = {
+    92014: 0,
+    92037: 2,
+    92064: 2,
+    92065: 5,
+    92101: 5,
+    92102: 2,
+    92103: 0,
+    92104: 1,
+    92105: 2,
+    92106: 3,
+    92107: 1,
+    92108: 1,
+    92109: 1,
+    92110: 2,
+    92111: 1,
+    92113: 6,
+    92114: 2,
+    92115: 0,
+    92116: 0,
+    92117: 1,
+    92119: 1,
+    92120: 1,
+    92121: 14,
+    92122: 1,
+    92123: 9,
+    92124: 4,
+    92126: 3,
+    92127: 1,
+    92128: 1,
+    92129: 3,
+    92130: 4,
+    92131: 1,
+    92139: 0,
+    92154: 15,
+    92173: 0
+}
+
             
 Hours = range(1, 25)
 
@@ -71,28 +110,29 @@ time_factor = [1, 0.9667, 0.9334, 0.9, 0.8667, 0.8334,
 ##decision variable
 z = {}
 for i in ZipCodes:
-    for j in ZipCodes[i]:
+    for j in Generators[i]:
         for t in Hours:
             z[i, j, t] = m.addVar(name="z[{},{}, {}]".format(i, j, t))
 
 # i: all zipcodes, j : all generators in that zipcode, t: time period
 
 #fraction of open generators in a subregion at any time
-openG = (gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i])
+openG = (gp.quicksum(z[i,j,t] for j in Generators[i]) / Generators[i])
 	
 # Add Objective Function
-m.setObjective(gp.quicksum((alpha * model_data.wildfire_probabilities[i] * (gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i]) + 
-                            (1 - alpha) * model_data.infrastructure[i]['TotalkWh'] * model_data.importance_metric[i] * time_factor[t] * (1 - gp.quicksum(z[i,j,t] for j in ZipCodes[i]) / ZipCodes[i])
+m.setObjective(gp.quicksum((alpha * model_data.wildfire_probabilities[i] * (gp.quicksum(z[i,j,t] for j in Generators[i]) / Generators[i]) * 200000 + 
+                            (1 - alpha) * model_data.infrastructure[i]['TotalkWh'] * model_data.importance_metric[i] * time_factor[t] * (1 - gp.quicksum(z[i,j,t] for j in Generators[i]) / Generators[i])
                             for i in ZipCodes for t in Hours)), GRB.MINIMIZE)
 	
 # Add Constraints
-for i in Node:
-    for j in Blood_type:
-        if j != 'O':
-            m.addConstr(gp.quicksum(x[k, i, mj] for k in Node if k != i for mj in match[j]) + 
-                gp.quicksum(x[i, i, mj] for mj in same_match[j]) >= Demand[i, j])
-        else:
-            m.addConstr(gp.quicksum(x[k, i, mj] for k in Node if k != i for mj in match[j]) >= Demand[i, j])
+for i in ZipCodes:
+    for j in Generators[i]:
+            m.addConstr(gp.quicksum(z[i,j,t] for t in Hours) >= 22)
+    
+for i in ZipCodes:
+    for t in Hours:
+        m.addConstr( model_data.wildfire_probabilities[i] * (gp.quicksum(z[i,j,t] for j in Generators[i]) / Generators[i]) <= 0.15)
+
 
 
 for i in Node:
