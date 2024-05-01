@@ -4,8 +4,6 @@ import model_data
 import matplotlib.pyplot as plt
 import numpy as np
 
-Blood_type={'A','B','O','AB'}
-
 ZipCodes = {92014, 92037, 92064, 92065, 92101, 92102,
               92103, 92104, 92105, 92106, 92107, 92108, 92109, 
               92110, 92111, 92113, 92114, 92115, 92116, 92117, 
